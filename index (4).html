@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<div class="letter">
+  <p id="typed-text"></p>
+</div>
+<head>
+  <meta charset="UTF-8">
+  <title>Carta para Ti 💖</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Dancing Script', cursive;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .envelope-container {
+      position: relative;
+      width: 260px;
+      height: 170px;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      perspective: 1000px;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .envelope, .letter {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      transition: transform 1s;
+    }
+
+    .envelope {
+      background: linear-gradient(135deg, #ffbfd5, #ff6f91);
+      border: 2px solid #ec407a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 20px rgba(255, 182, 193, 0.5);
+    }
+
+    .heart-icon {
+      font-size: 2.8em;
+      transition: transform 0.3s;
+    }
+
+    .envelope:hover .heart-icon {
+      transform: scale(1.2);
+    }
+
+.letter {
+  background-color: #fff;
+  color: #d81b60;
+  font-size: 1.2em;
+  text-align: center;
+  padding: 25px 20px;
+  box-sizing: border-box;
+  transform: rotateX(90deg);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  line-height: 1.8;
+  font-family: 'Dancing Script', cursive;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+    .open .envelope {
+      transform: rotateX(-90deg);
+    }
+
+    .open .letter {
+      transform: rotateX(0deg);
+    }
+
+    .heart {
+      position: fixed;
+      top: -2vh;
+      font-size: 1.6em;
+      animation: floatHeart linear forwards;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes floatHeart {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      80% { transform: translateY(90vh) scale(1.3); opacity: 0.8; }
+      100% { transform: translateY(100vh) scale(0.7); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="constellation"></canvas>
+
+<div class="envelope-container" onclick="toggleEnvelope(this)">
+  <div class="envelope">
+    <div class="heart-icon">💌</div>
+  </div>
+  <div class="letter">
+    A veces quisiera gritar lo que siento,<br>
+    pero mejor te lo dejo escrito para que lo leas con el corazón.<br>
+    <strong>Te quiero. 💖</strong>
+  </div>
+</div>
+
+<script>
+  // Abrir/cerrar sobre
+  function toggleEnvelope(el) {
+    el.classList.toggle('open');
+  }
+
+  // Corazones flotantes
+  function createHeart() {
+    const heart = document.createElement('div');
+    heart.classList.add('heart');
+    heart.innerText = ['💖', '💗', '💘', '💕'][Math.floor(Math.random()*4)];
+    heart.style.left = Math.random() * 100 + 'vw';
+    heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 5000);
+  }
+  setInterval(createHeart, 400);
+
+  // Constelación de estrellas
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let stars = [];
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Star {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.vx = (Math.random() - 0.5) * 0.2;
+      this.vy = (Math.random() - 0.5) * 0.2;
+      this.radius = Math.random() * 1.2 + 0.2;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+        this.reset();
+      }
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < 120; i++) {
+    stars.push(new Star());
+  }
+
+  let mouseX = 0;
+  let mouseY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function drawConstellations() {
+    ctx.clearRect(0, 0, width, height);
+
+    for (let star of stars) {
+      star.update();
+      star.draw();
+    }
+
+    for (let i = 0; i < stars.length; i++) {
+      for (let j = i + 1; j < stars.length; j++) {
+        const dx = stars[i].x - stars[j].x;
+        const dy = stars[i].y - stars[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(stars[i].x, stars[i].y);
+          ctx.lineTo(stars[j].x, stars[j].y);
+          ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+          ctx.stroke();
+        }
+      }
+
+      const dx = stars[i].x - mouseX;
+      const dy = stars[i].y - mouseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(stars[i].x, stars[i].y);
+        ctx.lineTo(mouseX, mouseY);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(drawConstellations);
+  }
+
+  drawConstellations();
+</script>
+</body>
+</html>
